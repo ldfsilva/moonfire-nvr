@@ -12,6 +12,8 @@ import TableRow, { TableRowProps } from "@mui/material/TableRow";
 import Skeleton from "@mui/material/Skeleton";
 import Alert from "@mui/material/Alert";
 
+const humanizeDuration = require("humanize-duration");
+
 interface Props {
   stream: Stream;
   range90k: [number, number] | null;
@@ -43,6 +45,7 @@ interface State {
 interface RowProps extends TableRowProps {
   start: React.ReactNode;
   end: React.ReactNode;
+  duration: React.ReactNode;
   resolution: React.ReactNode;
   fps: React.ReactNode;
   storage: React.ReactNode;
@@ -52,6 +55,7 @@ interface RowProps extends TableRowProps {
 const Row = ({
   start,
   end,
+  duration,
   resolution,
   fps,
   storage,
@@ -61,6 +65,7 @@ const Row = ({
   <TableRow {...rest}>
     <TableCell align="right">{start}</TableCell>
     <TableCell align="right">{end}</TableCell>
+    <TableCell align="right">{duration}</TableCell>
     <TableCell align="right" className="opt">
       {resolution}
     </TableCell>
@@ -141,6 +146,7 @@ const VideoList = ({
         role="progressbar"
         start={<Skeleton />}
         end={<Skeleton />}
+        duration={<Skeleton />}
         resolution={<Skeleton />}
         fps={<Skeleton />}
         storage={<Skeleton />}
@@ -167,6 +173,11 @@ const VideoList = ({
       const end = trimStartAndEnd
         ? Math.min(r.endTime90k, state.range90k[1])
         : r.endTime90k;
+      const duration = humanizeDuration((end - start) / 90, {
+        maxDecimalPoints: 2,
+        units: ["h", "m", "s", "ms"],
+      });
+
       return (
         <Row
           key={r.startId}
@@ -174,6 +185,7 @@ const VideoList = ({
           onClick={() => setActiveRecording([stream, r, vse])}
           start={formatTime(start)}
           end={formatTime(end)}
+          duration={duration}
           resolution={`${vse.width}x${vse.height}`}
           fps={frameRateFmt.format(r.videoSamples / durationSec)}
           storage={`${sizeFmt.format(r.sampleFileBytes / 1048576)} MiB`}
@@ -192,6 +204,7 @@ const VideoList = ({
       <Row
         start="start"
         end="end"
+        duration="duration"
         resolution="resolution"
         fps="fps"
         storage="storage"
